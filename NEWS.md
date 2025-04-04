@@ -1,3 +1,13 @@
+## Changes in version 1.10.0
+
+### Bug fixes and minor improvements
+
+* Removed `projection` from the show method
+* Fixed a missing anchor in `@inheritParams` documentation
+* The `TENxH5` constructor properly validates remote files with
+`.validateRanges`
+* imported `slotNames` from the `methods` package
+
 ## Changes in version 1.8.0
 
 ### New features
