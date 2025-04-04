@@ -1,7 +1,7 @@
 Package: TENxIO
 Type: Package
 Title: Import methods for 10X Genomics files
-Version: 1.9.4
+Version: 1.9.5
 Authors@R:
   person(
     "Marcel", "Ramos", , "marcel.ramos@sph.cuny.edu",
@@ -55,4 +55,4 @@ Collate:
     'TENxPeaks-class.R'
     'TENxTSV-class.R'
     'utils.R'
-Date: 2024-12-05
+Date: 2025-04-04
