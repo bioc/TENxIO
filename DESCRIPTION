@@ -7,7 +7,10 @@ Authors@R:
     "Marcel", "Ramos", , "marcel.ramos@sph.cuny.edu",
     c("aut", "cre"), c(ORCID = "0000-0002-3242-0582")
   )
-Depends: R (>= 4.5.0), SingleCellExperiment, SummarizedExperiment
+Depends:
+  R (>= 4.5.0),
+  SingleCellExperiment,
+  SummarizedExperiment
 Imports:
   BiocBaseUtils,
   BiocGenerics,
