@@ -32,7 +32,7 @@ Suggests:
   DropletTestFiles,
   ExperimentHub,
   knitr,
-  RaggedExperiment (>= 1.29.5),
+  RaggedExperiment,
   rmarkdown,
   Rsamtools,
   tinytest
