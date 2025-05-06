@@ -5,22 +5,23 @@
 # Introduction
 
 `TENxIO` allows users to import 10X pipeline files into known
-Bioconductor classes. The package is not comprehensive, there are files
-that are not supported. It currently does not support Visium datasets.
-It does replace some functionality in `DropletUtils`. If you would like
-a file format to be supported. Please open an issue at
-<https://github.com/waldronlab/TENxIO>.
+Bioconductor classes. The package is not comprehensive, there are file
+types that are not supported. For Visium datasets, we direct users to
+the `VisiumIO` package on Bioconductor. TENxIO consolidates
+functionality from `DropletUtils`. If you would like a file format to be
+supported, open an issue at <https://github.com/waldronlab/TENxIO>.
 
 # Supported Formats
 
-| **Extension**       | **Class**     | **Imported as**                    |
-|---------------------|---------------|------------------------------------|
-| .h5                 | TENxH5        | SingleCellExperiment w/ TENxMatrix |
-| .mtx / .mtx.gz      | TENxMTX       | SummarizedExperiment w/ dgCMatrix  |
-| .tar.gz             | TENxFileList  | SingleCellExperiment w/ dgCMatrix  |
-| peak_annotation.tsv | TENxPeaks     | GRanges                            |
-| fragments.tsv.gz    | TENxFragments | RaggedExperiment                   |
-| .tsv / .tsv.gz      | TENxTSV       | tibble                             |
+| **Extension**       | **Class**       | **Imported as**                    |
+|---------------------|-----------------|------------------------------------|
+| .h5                 | TENxH5          | SingleCellExperiment w/ TENxMatrix |
+| .mtx / .mtx.gz      | TENxMTX         | SummarizedExperiment w/ dgCMatrix  |
+| .tar.gz             | TENxFileList    | SingleCellExperiment w/ dgCMatrix  |
+| peak_annotation.tsv | TENxPeaks       | GRanges                            |
+| fragments.tsv.gz    | TENxFragments   | RaggedExperiment                   |
+| .tsv / .tsv.gz      | TENxTSV         | tibble                             |
+| spatial.tar.gz      | TENxSpatialList | inter. DataFrame list              |
 
 # Tested 10X Products
 
@@ -31,14 +32,11 @@ Genomics including those from:
 - Single Cell Gene Expression
 - Single Cell ATAC
 - Single Cell Multiome ATAC + Gene Expression
+- Spatial Gene Expression
 
 Note. That extensive testing has not been performed and the codebase may
 require some adaptation to ensure compatibility with all pipeline
 outputs.
-
-# Currently not supported
-
-- Spatial Gene Expression
 
 # Bioconductor implementations
 
@@ -104,12 +102,12 @@ showClass("TENxFile")
 #> Class "TENxFile" [package "TENxIO"]
 #> 
 #> Slots:
-#>                                                                               
-#> Name:                extension                  colidx                  rowidx
-#> Class:               character                 integer                 integer
-#>                                                                               
-#> Name:                   remote              compressed                resource
-#> Class:                 logical                 logical character_OR_connection
+#>                                                                                                                               
+#> Name:                extension                  colidx                  rowidx                  remote              compressed
+#> Class:               character                 integer                 integer                 logical                 logical
+#>                               
+#> Name:                 resource
+#> Class: character_OR_connection
 #> 
 #> Extends: "BiocFile"
 #> 
@@ -124,10 +122,10 @@ appropriate `ExperimentHub` identifier (`EH1039`):
 
 ``` r
 hub <- ExperimentHub::ExperimentHub()
-#> snapshotDate(): 2023-01-13
+#> snapshotDate(): 2025-04-21
 hub["EH1039"]
 #> ExperimentHub with 1 record
-#> # snapshotDate(): 2023-01-13
+#> # snapshotDate(): 2025-04-21
 #> # names(): EH1039
 #> # package(): TENxBrainData
 #> # $dataprovider: 10X Genomics
@@ -135,14 +133,13 @@ hub["EH1039"]
 #> # $rdataclass: character
 #> # $rdatadateadded: 2017-10-26
 #> # $title: Brain scRNA-seq data, 'HDF5-based 10X Genomics' format
-#> # $description: Single-cell RNA-seq data for 1.3 million brain cells from E1...
+#> # $description: Single-cell RNA-seq data for 1.3 million brain cells from E18 mice. 'HDF5-based 10X Genomics' format originally pro...
 #> # $taxonomyid: 10090
 #> # $genome: mm10
 #> # $sourcetype: HDF5
-#> # $sourceurl: http://cf.10xgenomics.com/samples/cell-exp/1.3.0/1M_neurons/1M...
+#> # $sourceurl: http://cf.10xgenomics.com/samples/cell-exp/1.3.0/1M_neurons/1M_neurons_filtered_gene_bc_matrices_h5.h5
 #> # $sourcesize: NA
-#> # $tags: c("SequencingData", "RNASeqData", "ExpressionData",
-#> #   "SingleCell") 
+#> # $tags: c("SequencingData", "RNASeqData", "ExpressionData", "SingleCell") 
 #> # retrieve record with 'object[["EH1039"]]'
 ```
 
@@ -154,7 +151,7 @@ fname <- hub[["EH1039"]]
 TENxFile(fname, extension = "h5", group = "mm10", version = "2")
 ```
 
-Note. `EH1039` is a large \~ 4GB file and files without extension as
+Note. `EH1039` is a large ~ 4GB file and files without extension as
 those obtained from `ExperimentHub` will emit a warning so that the user
 is aware that the import operation may fail, esp. if the internal
 structure of the file is modified.
@@ -213,8 +210,7 @@ The show method gives an overview of the data components in the file:
 con <- TENxH5(h5f)
 con
 #> TENxH5 object 
-#> resource: /media/mr148/1D24A0EA4286043C/bioc-devel/TENxIO/extdata/pbmc_granulocyte_ff_bc_ex.h5 
-#> projection: SingleCellExperiment 
+#> resource: /home/mramos/R/bioc-devel/TENxIO/extdata/pbmc_granulocyte_ff_bc_ex.h5 
 #> dim: 10 10 
 #> rownames: ENSG00000243485 ENSG00000237613 ... ENSG00000286448 ENSG00000236601 
 #> rowData names(3): ID Symbol Type 
@@ -230,15 +226,14 @@ to a Bioconductor class representation, typically a
 
 ``` r
 import(con)
+#> preview <= 12 rowRanges: pbmc_granulocyte_ff_bc_ex.h5
 #> class: SingleCellExperiment 
 #> dim: 10 10 
-#> metadata(0):
+#> metadata(1): TENxFile
 #> assays(1): counts
-#> rownames(10): ENSG00000243485 ENSG00000237613 ... ENSG00000286448
-#>   ENSG00000236601
+#> rownames(10): ENSG00000243485 ENSG00000237613 ... ENSG00000286448 ENSG00000236601
 #> rowData names(3): ID Symbol Type
-#> colnames(10): AAACAGCCAAATATCC-1 AAACAGCCAGGAACTG-1 ...
-#>   AAACCGCGTGAGGTAG-1 AAACGCGCATACCCGG-1
+#> colnames(10): AAACAGCCAAATATCC-1 AAACAGCCAGGAACTG-1 ... AAACCGCGTGAGGTAG-1 AAACGCGCATACCCGG-1
 #> colData names(0):
 #> reducedDimNames(0):
 #> mainExpName: Gene Expression
@@ -264,7 +259,7 @@ mtxf <- system.file(
 con <- TENxMTX(mtxf)
 con
 #> TENxMTX object
-#> resource: /media/mr148/1D24A0EA4286043C/bioc-devel/TENxIO/extdata/pbmc_3k_ff_bc_ex.mtx
+#> resource: /home/mramos/R/bioc-devel/TENxIO/extdata/pbmc_3k_ff_bc_ex.mtx
 ```
 
 ## import MTX method
@@ -276,7 +271,7 @@ rownames.
 import(con)
 #> class: SummarizedExperiment 
 #> dim: 171 10 
-#> metadata(0):
+#> metadata(1): TENxFile
 #> assays(1): counts
 #> rownames: NULL
 #> rowData names(0):
@@ -318,12 +313,11 @@ con <- TENxFileList(fl)
 import(con)
 #> class: SingleCellExperiment 
 #> dim: 10 10 
-#> metadata(0):
+#> metadata(1): TENxFileList
 #> assays(1): counts
-#> rownames: NULL
+#> rownames(10): ENSG00000243485 ENSG00000237613 ... ENSG00000286448 ENSG00000236601
 #> rowData names(3): ID Symbol Type
-#> colnames(10): AAACAGCCAAATATCC-1 AAACAGCCAGGAACTG-1 ...
-#>   AAACCGCGTGAGGTAG-1 AAACGCGCATACCCGG-1
+#> colnames(10): AAACAGCCAAATATCC-1 AAACAGCCAGGAACTG-1 ... AAACCGCGTGAGGTAG-1 AAACGCGCATACCCGG-1
 #> colData names(0):
 #> reducedDimNames(0):
 #> mainExpName: Gene Expression
@@ -385,7 +379,7 @@ tfr <- TENxFragments(fr)
 #> Warning in TENxFragments(fr): Using default 'yieldSize' parameter
 tfr
 #> TENxFragments object
-#> resource: /media/mr148/1D24A0EA4286043C/bioc-devel/TENxIO/extdata/pbmc_3k_atac_ex_fragments.tsv.gz
+#> resource: /home/mramos/R/bioc-devel/TENxIO/extdata/pbmc_3k_atac_ex_fragments.tsv.gz
 ```
 
 Because there may be a variable number of fragments per barcode, we use
@@ -398,12 +392,11 @@ fra
 #> dim: 10 10 
 #> assays(2): barcode readSupport
 #> rownames: NULL
-#> colnames(10): AAACCGCGTGAGGTAG-1 AAGCCTCCACACTAAT-1 ...
-#>   TGATTAGTCTACCTGC-1 TTTAGCAAGGTAGCTT-1
+#> colnames(10): AAACCGCGTGAGGTAG-1 AAGCCTCCACACTAAT-1 ... TGATTAGTCTACCTGC-1 TTTAGCAAGGTAGCTT-1
 #> colData names(0):
 ```
 
-Similar operations to those used with SummarizedExperiment are
+Similar operations to those used with `SummarizedExperiment` are
 supported. For example, the genomic ranges can be displayed via
 `rowRanges`:
 
@@ -426,81 +419,56 @@ rowRanges(fra)
 #>   seqinfo: 1 sequence from an unspecified genome; no seqlengths
 ```
 
+<details>
+<summary>
+Click here to expand <code>sessionInfo()</code>
+</summary>
+
 # Session Information
 
 ``` r
 sessionInfo()
-#> R Under development (unstable) (2022-10-24 r83173)
-#> Platform: x86_64-pc-linux-gnu (64-bit)
-#> Running under: Ubuntu 22.04.1 LTS
+#> R version 4.5.0 Patched (2025-04-15 r88148)
+#> Platform: x86_64-pc-linux-gnu
+#> Running under: Ubuntu 24.04.2 LTS
 #> 
 #> Matrix products: default
-#> BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0
-#> LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
+#> BLAS/LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
 #> 
 #> locale:
-#>  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-#>  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-#>  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-#>  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-#>  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-#> [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+#>  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+#>  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+#>  [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+#> 
+#> time zone: America/New_York
+#> tzcode source: system (glibc)
 #> 
 #> attached base packages:
-#> [1] stats4    stats     graphics  grDevices utils     datasets  methods  
-#> [8] base     
+#> [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#>  [1] rhdf5_2.43.0                TENxIO_1.1.0               
-#>  [3] SingleCellExperiment_1.21.0 SummarizedExperiment_1.29.1
-#>  [5] Biobase_2.59.0              GenomicRanges_1.51.4       
-#>  [7] GenomeInfoDb_1.35.12        IRanges_2.33.0             
-#>  [9] S4Vectors_0.37.3            BiocGenerics_0.45.0        
-#> [11] MatrixGenerics_1.11.0       matrixStats_0.63.0         
+#>  [1] rhdf5_2.53.0                TENxIO_1.11.1               SingleCellExperiment_1.31.0 SummarizedExperiment_1.39.0
+#>  [5] Biobase_2.69.0              GenomicRanges_1.61.0        GenomeInfoDb_1.45.3         IRanges_2.43.0             
+#>  [9] S4Vectors_0.47.0            BiocGenerics_0.55.0         generics_0.1.3              MatrixGenerics_1.21.0      
+#> [13] matrixStats_1.5.0           colorout_1.3-2             
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] tidyselect_1.2.0              dplyr_1.0.10                 
-#>  [3] blob_1.2.3                    R.utils_2.12.2               
-#>  [5] Biostrings_2.67.0             filelock_1.0.2               
-#>  [7] bitops_1.0-7                  RaggedExperiment_1.23.0      
-#>  [9] fastmap_1.1.0                 RCurl_1.98-1.9               
-#> [11] BiocFileCache_2.7.1           promises_1.2.0.1             
-#> [13] digest_0.6.31                 mime_0.12                    
-#> [15] lifecycle_1.0.3               ellipsis_0.3.2               
-#> [17] KEGGREST_1.39.0               interactiveDisplayBase_1.37.0
-#> [19] RSQLite_2.2.20                magrittr_2.0.3               
-#> [21] compiler_4.3.0                rlang_1.0.6                  
-#> [23] tools_4.3.0                   utf8_1.2.2                   
-#> [25] yaml_2.3.6                    knitr_1.41                   
-#> [27] bit_4.0.5                     curl_5.0.0                   
-#> [29] DelayedArray_0.25.0           BiocParallel_1.33.9          
-#> [31] HDF5Array_1.27.0              withr_2.5.0                  
-#> [33] purrr_1.0.1                   R.oo_1.25.0                  
-#> [35] grid_4.3.0                    fansi_1.0.3                  
-#> [37] ExperimentHub_2.7.0           xtable_1.8-4                 
-#> [39] Rhdf5lib_1.21.0               cli_3.6.0                    
-#> [41] crayon_1.5.2                  rmarkdown_2.19               
-#> [43] generics_0.1.3                rstudioapi_0.14              
-#> [45] httr_1.4.4                    tzdb_0.3.0                   
-#> [47] BiocBaseUtils_1.1.0           DBI_1.1.3                    
-#> [49] cachem_1.0.6                  stringr_1.5.0                
-#> [51] zlibbioc_1.45.0               parallel_4.3.0               
-#> [53] assertthat_0.2.1              AnnotationDbi_1.61.0         
-#> [55] BiocManager_1.30.19           XVector_0.39.0               
-#> [57] vctrs_0.5.1                   Matrix_1.5-3                 
-#> [59] hms_1.1.2                     bit64_4.0.5                  
-#> [61] glue_1.6.2                    codetools_0.2-18             
-#> [63] stringi_1.7.12                BiocVersion_3.17.1           
-#> [65] later_1.3.0                   BiocIO_1.9.2                 
-#> [67] tibble_3.1.8                  pillar_1.8.1                 
-#> [69] rhdf5filters_1.11.0           rappdirs_0.3.3               
-#> [71] htmltools_0.5.4               GenomeInfoDbData_1.2.9       
-#> [73] R6_2.5.1                      dbplyr_2.3.0                 
-#> [75] vroom_1.6.0                   evaluate_0.20                
-#> [77] shiny_1.7.4                   lattice_0.20-45              
-#> [79] readr_2.1.3                   AnnotationHub_3.7.0          
-#> [81] Rsamtools_2.15.1              R.methodsS3_1.8.2            
-#> [83] png_0.1-8                     memoise_2.0.1                
-#> [85] httpuv_1.6.8                  Rcpp_1.0.9                   
-#> [87] xfun_0.36                     pkgconfig_2.0.3
+#>  [1] tidyselect_1.2.1        dplyr_1.1.4             blob_1.2.4              bitops_1.0-9            filelock_1.0.3         
+#>  [6] R.utils_2.13.0          Biostrings_2.77.0       RaggedExperiment_1.33.1 fastmap_1.2.0           BiocFileCache_2.99.0   
+#> [11] digest_0.6.37           lifecycle_1.0.4         KEGGREST_1.49.0         RSQLite_2.3.9           magrittr_2.0.3         
+#> [16] compiler_4.5.0          rlang_1.1.6             tools_4.5.0             yaml_2.3.10             knitr_1.50             
+#> [21] S4Arrays_1.9.0          bit_4.6.0               curl_6.2.2              DelayedArray_0.35.1     BiocParallel_1.43.0    
+#> [26] abind_1.4-8             rsconnect_1.3.4         HDF5Array_1.37.0        withr_3.0.2             purrr_1.0.4            
+#> [31] R.oo_1.27.0             grid_4.5.0              ExperimentHub_2.99.0    Rhdf5lib_1.31.0         cli_3.6.5              
+#> [36] rmarkdown_2.29          crayon_1.5.3            rstudioapi_0.17.1       httr_1.4.7              tzdb_0.5.0             
+#> [41] BiocBaseUtils_1.11.0    DBI_1.2.3               cachem_1.1.0            parallel_4.5.0          AnnotationDbi_1.71.0   
+#> [46] BiocManager_1.30.25     XVector_0.49.0          vctrs_0.6.5             Matrix_1.7-3            jsonlite_2.0.0         
+#> [51] hms_1.1.3               bit64_4.6.0-1           archive_1.1.12          h5mread_1.1.0           glue_1.8.0             
+#> [56] codetools_0.2-20        BiocVersion_3.22.0      BiocIO_1.19.0           UCSC.utils_1.5.0        tibble_3.2.1           
+#> [61] pillar_1.10.2           rappdirs_0.3.3          htmltools_0.5.8.1       rhdf5filters_1.21.0     R6_2.6.1               
+#> [66] dbplyr_2.5.0            httr2_1.1.2             vroom_1.6.5             evaluate_1.0.3          lattice_0.22-7         
+#> [71] readr_2.1.5             AnnotationHub_3.99.0    Rsamtools_2.25.0        png_0.1-8               R.methodsS3_1.8.2      
+#> [76] memoise_2.0.1           BiocStyle_2.37.0        SparseArray_1.9.0       xfun_0.52               pkgconfig_2.0.3
 ```
+
+</details>
