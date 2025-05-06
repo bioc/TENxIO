@@ -299,12 +299,16 @@ example, the genomic ranges can be displayed via `rowRanges`:
 rowRanges(fra)
 ```
 
-<details><summary>Click here to expand <code>sessionInfo()</code></summary>
-
 # Session Information
 
-```{r}
-sessionInfo()
+```{r session-info, echo=FALSE, results='asis'}
+html_output <- paste0(
+    "<details><summary>",
+    "Click to expand <code>sessionInfo()</code>",
+    "</summary>\n\n",
+    "<pre><code>",
+    paste(capture.output(sessionInfo()), collapse = "\n"),
+    "</code></pre>\n</details>"
+)
+cat(html_output)
 ```
-
-</details>
