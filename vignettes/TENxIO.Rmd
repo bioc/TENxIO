@@ -299,9 +299,12 @@ example, the genomic ranges can be displayed via `rowRanges`:
 rowRanges(fra)
 ```
 
+<details><summary>Click here to expand <code>sessionInfo()</code></summary>
+
 # Session Information
 
 ```{r}
 sessionInfo()
 ```
 
+</details>
