@@ -1,0 +1,7 @@
+title: TENxIO
+url: https://waldronlab.github.io/TENxIO
+
+template:
+  bootstrap: 5
+  params:
+    bootswatch: flatly
