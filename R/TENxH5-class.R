@@ -267,7 +267,7 @@ setMethod("dimnames", "TENxH5", function(x) {
 })
 
 #' @describeIn TENxH5 Read genome string from file
-#' @importFrom GenomeInfoDb genome genome<-
+#' @importFrom Seqinfo genome genome<-
 #' @export
 setMethod("genome", "TENxH5", function(x) {
     group <- x@group
