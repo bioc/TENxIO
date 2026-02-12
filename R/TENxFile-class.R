@@ -36,9 +36,13 @@
     )
 )
 
+.is_url <- function(path) {
+    grepl("^(http|https|ftp)://", path, ignore.case = TRUE)
+}
+
 .check_file_exists <- function(object) {
     op <- path(object)
-    if (file.exists(op) || RCurl::url.exists(op))
+    if (file.exists(op) || .is_url(op))
         TRUE
     else
         "Path or URL to the file must be valid"

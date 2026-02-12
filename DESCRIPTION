@@ -21,7 +21,6 @@ Imports:
   Matrix,
   MatrixGenerics,
   methods,
-  RCurl,
   readr,
   rhdf5,
   R.utils,
